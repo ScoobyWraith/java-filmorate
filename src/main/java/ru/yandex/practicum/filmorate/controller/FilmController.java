@@ -3,8 +3,6 @@ package ru.yandex.practicum.filmorate.controller;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,8 +14,6 @@ public class FilmController {
 
     FilmController() {
         films = new HashMap<>();
-
-        films.put(1L, new Film(1L, "", "", Instant.now(), Duration.ofHours(1)));
     }
 
     @PostMapping
