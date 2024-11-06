@@ -36,8 +36,8 @@ public class FilmController {
             try {
                 checker.check(film);
             } catch (ValidationException exception) {
-                log.warn("Error on adding film", exception);
-                return null;
+                log.warn("Error on adding film: {}", exception.getMessage());
+                throw exception;
             }
         }
 
@@ -57,8 +57,8 @@ public class FilmController {
             try {
                 checker.check(film);
             } catch (ValidationException exception) {
-                log.warn("Error on updating film", exception);
-                return null;
+                log.warn("Error on updating film: {}", exception.getMessage());
+                throw exception;
             }
         }
 

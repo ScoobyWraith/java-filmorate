@@ -38,8 +38,8 @@ public class UserController {
             try {
                 checker.check(user);
             } catch (ValidationException exception) {
-                log.warn("Error on adding user", exception);
-                return null;
+                log.warn("Error on adding user: {}", exception.getMessage());
+                throw exception;
             }
         }
 
@@ -59,8 +59,8 @@ public class UserController {
             try {
                 checker.check(user);
             } catch (ValidationException exception) {
-                log.warn("Error on updating user", exception);
-                return null;
+                log.warn("Error on updating user: {}", exception.getMessage());
+                throw exception;
             }
         }
 
