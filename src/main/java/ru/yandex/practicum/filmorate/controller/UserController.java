@@ -6,6 +6,7 @@ import ru.yandex.practicum.filmorate.controller.checkers.IChecker;
 import ru.yandex.practicum.filmorate.controller.checkers.UserBirthDateChecker;
 import ru.yandex.practicum.filmorate.controller.checkers.UserEmailChecker;
 import ru.yandex.practicum.filmorate.controller.checkers.UserLoginChecker;
+import ru.yandex.practicum.filmorate.exceptions.NotFound;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -43,6 +44,7 @@ public class UserController {
             }
         }
 
+        setUserNameIfNot(user);
         user.setId(getNextId());
         users.put(user.getId(), user);
 
@@ -64,7 +66,15 @@ public class UserController {
             }
         }
 
-        users.put(user.getId(), user);
+        Long id = user.getId();
+
+        if (!users.containsKey(id)) {
+            log.warn("Error on updating user: user with id {} not found", id);
+            throw new NotFound("User not found");
+        }
+
+        setUserNameIfNot(user);
+        users.put(id, user);
 
         log.info("User '{}' successfully updated", user);
 
@@ -83,5 +93,13 @@ public class UserController {
                 .max()
                 .orElse(0);
         return ++currentMaxId;
+    }
+
+    private void setUserNameIfNot(User user) {
+        final String name = user.getName();
+
+        if (name == null || name.isBlank()) {
+            user.setName(user.getLogin());
+        }
     }
 }
