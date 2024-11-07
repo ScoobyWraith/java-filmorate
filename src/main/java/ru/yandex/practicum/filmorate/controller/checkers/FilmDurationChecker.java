@@ -9,7 +9,7 @@ public class FilmDurationChecker implements IChecker<Film> {
         final int duration = model.getDuration();
 
         if (duration < 1) {
-            throw new ValidationException("Film's duration is negative");
+            throw new ValidationException("Film's duration is less then 1");
         }
     }
 }
