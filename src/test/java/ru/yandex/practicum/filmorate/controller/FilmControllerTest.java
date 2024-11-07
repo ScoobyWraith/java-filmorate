@@ -25,6 +25,7 @@ class FilmControllerTest {
         final Film film = Film.builder()
                 .name("film name")
                 .description("film description")
+                .duration(120)
                 .releaseDate(LocalDate.of(1980, 1, 1))
                 .build();
 
@@ -41,6 +42,7 @@ class FilmControllerTest {
         final Film film = Film.builder()
                 .name("film name")
                 .description("film description")
+                .duration(100)
                 .releaseDate(LocalDate.of(1980, 1, 1))
                 .build();
 
@@ -62,6 +64,7 @@ class FilmControllerTest {
                 .id(999L)
                 .name("film name")
                 .description("film description")
+                .duration(85)
                 .releaseDate(LocalDate.of(1980, 1, 1))
                 .build();
 
@@ -127,6 +130,7 @@ class FilmControllerTest {
         final Film film1 = Film.builder()
                 .name("film name 1")
                 .description("film description")
+                .duration(95)
                 .releaseDate(LocalDate.of(2000, 1, 1))
                 .build();
         final Film film2 = film1.toBuilder().name("film name 1").build();
