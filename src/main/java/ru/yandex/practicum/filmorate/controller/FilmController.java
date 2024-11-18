@@ -1,26 +1,26 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.controller.checkers.*;
-import ru.yandex.practicum.filmorate.exceptions.NotFound;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/films")
 @Slf4j
 public class FilmController {
-    private final Map<Long, Film> films;
+    private final FilmService service;
     private final List<IChecker<Film>> checks;
 
-    public FilmController() {
-        films = new HashMap<>();
+    @Autowired
+    public FilmController(FilmService service) {
+        this.service = service;
         checks = List.of(
                 new FilmNameChecker(),
                 new FilmDescriptionChecker(),
@@ -31,7 +31,7 @@ public class FilmController {
 
     @PostMapping
     public Film addFilm(@RequestBody Film film) {
-        log.debug("Adding film: {}", film);
+        log.debug("Request to add film: {}", film);
 
         for (IChecker<Film> checker : checks) {
             try {
@@ -42,17 +42,12 @@ public class FilmController {
             }
         }
 
-        film.setId(getNextId());
-        films.put(film.getId(), film);
-
-        log.info("Film '{}' successfully added", film);
-
-        return film;
+        return service.add(film);
     }
 
     @PutMapping
     public Film updateFilm(@RequestBody Film film) {
-        log.debug("Updating film: {}", film);
+        log.debug("Request to update film: {}", film);
 
         for (IChecker<Film> checker : checks) {
             try {
@@ -63,31 +58,11 @@ public class FilmController {
             }
         }
 
-        Long id = film.getId();
-
-        if (!films.containsKey(id)) {
-            log.warn("Error on updating film: film with id {} not found", id);
-            throw new NotFound("Film not found");
-        }
-
-        films.put(id, film);
-
-        log.info("Film '{}' successfully updated", film);
-
-        return film;
+        return service.update(film);
     }
 
     @GetMapping
     public Collection<Film> getAll() {
-        return films.values();
-    }
-
-    private long getNextId() {
-        long currentMaxId = films.keySet()
-                .stream()
-                .mapToLong(id -> id)
-                .max()
-                .orElse(0);
-        return ++currentMaxId;
+        return service.getAll();
     }
 }
