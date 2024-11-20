@@ -8,12 +8,14 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
 import java.util.Collection;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class FilmService {
     private final FilmStorage storage;
+    private final UserService userService;
 
     public Film getById(Long id) {
         checkExisting(id);
@@ -43,6 +45,7 @@ public class FilmService {
 
     public void addLike(Long filmId, Long userId) {
         checkExisting(filmId);
+        userService.checkExisting(userId);
         Film film = storage.getById(filmId).orElseThrow();
         film.addLike(userId);
         storage.update(film);
@@ -52,6 +55,7 @@ public class FilmService {
 
     public void removeLike(Long filmId, Long userId) {
         checkExisting(filmId);
+        userService.checkExisting(userId);
         Film film = storage.getById(filmId).orElseThrow();
         film.removeLike(userId);
         storage.update(film);
@@ -60,11 +64,12 @@ public class FilmService {
     }
 
     public Collection<Film> getPopularFilms(int size) {
-        return storage.getAll()
+        List<Film> result = storage.getAll()
                 .stream()
                 .sorted((f1, f2) -> f2.getLikedUsersQuantity() - f1.getLikedUsersQuantity())
-                .toList()
-                .subList(0, size);
+                .toList();
+        size = Integer.min(size, result.size());
+        return result.subList(0, size);
     }
 
     private long getNextId() {
@@ -79,7 +84,7 @@ public class FilmService {
     private void checkExisting(long id) throws NotFound {
         if (storage.getById(id).isEmpty()) {
             log.warn("Film with id {} not found", id);
-            throw new NotFound("Film with id " + id + "not found");
+            throw new NotFound("Film with id " + id + " not found");
         }
     }
 }

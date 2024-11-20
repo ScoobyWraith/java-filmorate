@@ -59,9 +59,11 @@ public class UserService {
 
         User user = storage.getById(userId).orElseThrow();
         user.addFriend(friendId);
+        storage.update(user);
 
         User friend = storage.getById(friendId).orElseThrow();
         friend.addFriend(userId);
+        storage.update(friend);
 
         log.info("Users {} and {} are friends}", userId, friendId);
     }
@@ -72,9 +74,11 @@ public class UserService {
 
         User user = storage.getById(userId).orElseThrow();
         user.removeFriend(friendId);
+        storage.update(user);
 
         User friend = storage.getById(friendId).orElseThrow();
         friend.removeFriend(userId);
+        storage.update(friend);
 
         log.info("Users {} and {} are not friends}", userId, friendId);
     }
@@ -118,6 +122,13 @@ public class UserService {
                 .collect(Collectors.toSet());
     }
 
+    public void checkExisting(long id) throws NotFound {
+        if (storage.getById(id).isEmpty()) {
+            log.warn("User with id {} not found", id);
+            throw new NotFound("User with id " + id + " not found");
+        }
+    }
+
     private long getNextId() {
         long currentMaxId = storage.getAll()
                 .stream()
@@ -132,13 +143,6 @@ public class UserService {
 
         if (name == null || name.isBlank()) {
             user.setName(user.getLogin());
-        }
-    }
-
-    private void checkExisting(long id) throws NotFound {
-        if (storage.getById(id).isEmpty()) {
-            log.warn("User with id {} not found", id);
-            throw new NotFound("User with id " + id + "not found");
         }
     }
 }
