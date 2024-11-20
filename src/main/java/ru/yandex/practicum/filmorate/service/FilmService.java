@@ -18,7 +18,6 @@ public class FilmService {
     public Film add(Film film) {
         film.setId(getNextId());
         storage.add(film);
-
         log.info("Film '{}' successfully added", film);
 
         return film;
@@ -26,14 +25,8 @@ public class FilmService {
 
     public Film update(Film film) {
         Long id = film.getId();
-
-        if (storage.getById(id).isEmpty()) {
-            log.warn("Error on updating film: film with id {} not found", id);
-            throw new NotFound("Film not found");
-        }
-
+        checkExisting(id);
         storage.update(film);
-
         log.info("Film '{}' successfully updated", film);
 
         return film;
@@ -44,15 +37,29 @@ public class FilmService {
     }
 
     public void addLike(Long filmId, Long userId) {
+        checkExisting(filmId);
+        Film film = storage.getById(filmId).orElseThrow();
+        film.addLike(userId);
+        storage.update(film);
 
+        log.info("User {} liked film {}", userId, filmId);
     }
 
     public void removeLike(Long filmId, Long userId) {
+        checkExisting(filmId);
+        Film film = storage.getById(filmId).orElseThrow();
+        film.removeLike(userId);
+        storage.update(film);
 
+        log.info("User {} unliked film {}", filmId, userId);
     }
 
     public Collection<Film> getPopularFilms(int size) {
-        return null;
+        return storage.getAll()
+                .stream()
+                .sorted((f1, f2) -> f2.getLikedUsersQuantity() - f1.getLikedUsersQuantity())
+                .toList()
+                .subList(0, size);
     }
 
     private long getNextId() {
@@ -62,5 +69,12 @@ public class FilmService {
                 .max()
                 .orElse(0);
         return ++currentMaxId;
+    }
+
+    private void checkExisting(long id) throws NotFound {
+        if (storage.getById(id).isEmpty()) {
+            log.warn("Film with id {} not found", id);
+            throw new NotFound("Film with id " + id + "not found");
+        }
     }
 }

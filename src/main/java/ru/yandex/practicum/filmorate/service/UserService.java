@@ -8,6 +8,9 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -46,15 +49,52 @@ public class UserService {
     }
 
     public void addFriend(Long userId, Long friendId) {
+        checkExisting(userId);
+        checkExisting(friendId);
 
+        User user = storage.getById(userId).orElseThrow();
+        user.addFriend(friendId);
+
+        User friend = storage.getById(friendId).orElseThrow();
+        friend.addFriend(userId);
+
+        log.info("Users {} and {} are friends}", userId, friendId);
     }
 
     public void removeFriend(Long userId, Long friendId) {
+        checkExisting(userId);
+        checkExisting(friendId);
 
+        User user = storage.getById(userId).orElseThrow();
+        user.removeFriend(friendId);
+
+        User friend = storage.getById(friendId).orElseThrow();
+        friend.removeFriend(userId);
+
+        log.info("Users {} and {} are not friends}", userId, friendId);
     }
 
-    public Collection<User> getMutualFriends(Long userId, Long anotherUserId) {
-        return null;
+    public Collection<User> getCommonFriends(Long userId, Long anotherUserId) {
+        checkExisting(userId);
+        checkExisting(anotherUserId);
+
+        User user = storage.getById(userId).orElseThrow();
+        Set<Long> userFriends = user.getFriends();
+
+        User anotherUser = storage.getById(anotherUserId).orElseThrow();
+        Set<Long> anotherUserFriends = anotherUser.getFriends();
+
+        if (userFriends == null || anotherUserFriends == null) {
+            return new HashSet<>();
+        }
+
+        return userFriends.stream()
+                .filter(anotherUserFriends::contains)
+                .map(id -> {
+                    checkExisting(id);
+                    return storage.getById(id).orElseThrow();
+                })
+                .collect(Collectors.toSet());
     }
 
     private long getNextId() {
@@ -71,6 +111,13 @@ public class UserService {
 
         if (name == null || name.isBlank()) {
             user.setName(user.getLogin());
+        }
+    }
+
+    private void checkExisting(long id) throws NotFound {
+        if (storage.getById(id).isEmpty()) {
+            log.warn("User with id {} not found", id);
+            throw new NotFound("User with id " + id + "not found");
         }
     }
 }
