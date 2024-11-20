@@ -15,6 +15,11 @@ import java.util.Collection;
 public class FilmService {
     private final FilmStorage storage;
 
+    public Film getById(Long id) {
+        checkExisting(id);
+        return storage.getById(id).orElseThrow();
+    }
+
     public Film add(Film film) {
         film.setId(getNextId());
         storage.add(film);

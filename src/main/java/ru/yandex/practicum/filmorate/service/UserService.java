@@ -18,6 +18,11 @@ import java.util.stream.Collectors;
 public class UserService {
     private final UserStorage storage;
 
+    public User getById(Long id) {
+        checkExisting(id);
+        return storage.getById(id).orElseThrow();
+    }
+
     public User add(User user) {
         setUserNameIfNot(user);
         user.setId(getNextId());
@@ -72,6 +77,22 @@ public class UserService {
         friend.removeFriend(userId);
 
         log.info("Users {} and {} are not friends}", userId, friendId);
+    }
+
+    public Set<User> getFriends(Long userId) {
+        checkExisting(userId);
+
+        User user = storage.getById(userId).orElseThrow();
+        Set<Long> userFriends = user.getFriends();
+
+        return userFriends == null
+                ? new HashSet<>()
+                : userFriends.stream()
+                .map(id -> {
+                    checkExisting(id);
+                    return storage.getById(id).orElseThrow();
+                })
+                .collect(Collectors.toSet());
     }
 
     public Collection<User> getCommonFriends(Long userId, Long anotherUserId) {
