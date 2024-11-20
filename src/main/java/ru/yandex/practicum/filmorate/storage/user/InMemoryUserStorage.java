@@ -14,17 +14,21 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public void add(User user) {
-        storage.put(user.getId(), user);
+        storage.put(user.getId(), user.toBuilder().build());
     }
 
     @Override
     public Optional<User> getById(long id) {
-        return Optional.ofNullable(storage.get(id));
+        if (!storage.containsKey(id)) {
+            return Optional.empty();
+        }
+
+        return Optional.of(storage.get(id).toBuilder().build());
     }
 
     @Override
     public void update(User user) {
-        storage.put(user.getId(), user);
+        storage.put(user.getId(), user.toBuilder().build());
     }
 
     @Override

@@ -14,17 +14,21 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public void add(Film film) {
-        storage.put(film.getId(), film);
+        storage.put(film.getId(), film.toBuilder().build());
     }
 
     @Override
     public Optional<Film> getById(long id) {
-        return Optional.ofNullable(storage.get(id));
+        if (!storage.containsKey(id)) {
+            return Optional.empty();
+        }
+
+        return Optional.of(storage.get(id).toBuilder().build());
     }
 
     @Override
     public void update(Film film) {
-        storage.put(film.getId(), film);
+        storage.put(film.getId(), film.toBuilder().build());
     }
 
     @Override
