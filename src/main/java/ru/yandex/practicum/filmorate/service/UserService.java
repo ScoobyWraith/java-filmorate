@@ -92,10 +92,7 @@ public class UserService {
         return userFriends == null
                 ? new HashSet<>()
                 : userFriends.stream()
-                .map(id -> {
-                    checkExisting(id);
-                    return storage.getById(id).orElseThrow();
-                })
+                .map(id -> storage.getById(id).orElseThrow())
                 .collect(Collectors.toSet());
     }
 
@@ -115,10 +112,7 @@ public class UserService {
 
         return userFriends.stream()
                 .filter(anotherUserFriends::contains)
-                .map(id -> {
-                    checkExisting(id);
-                    return storage.getById(id).orElseThrow();
-                })
+                .map(id -> storage.getById(id).orElseThrow())
                 .collect(Collectors.toSet());
     }
 
