@@ -8,7 +8,6 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
 import java.util.Collection;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -64,12 +63,11 @@ public class FilmService {
     }
 
     public Collection<Film> getPopularFilms(int size) {
-        List<Film> result = storage.getAll()
+        return storage.getAll()
                 .stream()
                 .sorted((f1, f2) -> f2.getLikedUsersQuantity() - f1.getLikedUsersQuantity())
+                .limit(size)
                 .toList();
-        size = Integer.min(size, result.size());
-        return result.subList(0, size);
     }
 
     private long getNextId() {
