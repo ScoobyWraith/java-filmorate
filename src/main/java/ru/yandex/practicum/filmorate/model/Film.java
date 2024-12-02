@@ -18,6 +18,8 @@ public class Film {
     private LocalDate releaseDate;
     private int duration;
     private Set<Long> usersWhoLiked;
+    private Set<Genre> genre;
+    private RatingMPA rating;
 
     public void addLike(Long userId) {
         if (usersWhoLiked == null) {
