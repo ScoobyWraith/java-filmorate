@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -22,14 +23,12 @@ public class UserService {
     }
 
     public User getById(Long id) {
-        checkExisting(id);
-        return storage.getById(id).orElseThrow();
+        return getWithCheck(id);
     }
 
     public User add(User user) {
         setUserNameIfNot(user);
-        user.setId(getNextId());
-        storage.add(user);
+        user = storage.add(user);
 
         log.info("User '{}' successfully added", user);
 
@@ -37,18 +36,10 @@ public class UserService {
     }
 
     public User update(User user) {
-        Long id = user.getId();
-
-        if (storage.getById(id).isEmpty()) {
-            log.warn("Error on updating user: user with id {} not found", id);
-            throw new NotFound("User not found");
-        }
-
+        getWithCheck(user.getId());
         setUserNameIfNot(user);
-        storage.update(user);
-
+        user = storage.update(user);
         log.info("User '{}' successfully updated", user);
-
         return user;
     }
 
@@ -57,39 +48,27 @@ public class UserService {
     }
 
     public void addFriend(Long userId, Long friendId) {
-        checkExisting(userId);
-        checkExisting(friendId);
+        User user = getWithCheck(userId);
+        getWithCheck(friendId);
 
-        User user = storage.getById(userId).orElseThrow();
         user.addFriend(friendId);
         storage.update(user);
 
-        User friend = storage.getById(friendId).orElseThrow();
-        friend.addFriend(userId);
-        storage.update(friend);
-
-        log.info("Users {} and {} are friends}", userId, friendId);
+        log.info("User {} add user {} into friend list", userId, friendId);
     }
 
     public void removeFriend(Long userId, Long friendId) {
-        checkExisting(userId);
-        checkExisting(friendId);
+        User user = getWithCheck(userId);
+        getWithCheck(friendId);
 
-        User user = storage.getById(userId).orElseThrow();
         user.removeFriend(friendId);
         storage.update(user);
 
-        User friend = storage.getById(friendId).orElseThrow();
-        friend.removeFriend(userId);
-        storage.update(friend);
-
-        log.info("Users {} and {} are not friends}", userId, friendId);
+        log.info("User {} removed user {} from friend list", userId, friendId);
     }
 
     public Set<User> getFriends(Long userId) {
-        checkExisting(userId);
-
-        User user = storage.getById(userId).orElseThrow();
+        User user = getWithCheck(userId);
         Set<Long> userFriends = user.getFriends();
 
         return userFriends == null
@@ -100,13 +79,10 @@ public class UserService {
     }
 
     public Collection<User> getCommonFriends(Long userId, Long anotherUserId) {
-        checkExisting(userId);
-        checkExisting(anotherUserId);
+        User user = getWithCheck(userId);
+        User anotherUser = getWithCheck(anotherUserId);
 
-        User user = storage.getById(userId).orElseThrow();
         Set<Long> userFriends = user.getFriends();
-
-        User anotherUser = storage.getById(anotherUserId).orElseThrow();
         Set<Long> anotherUserFriends = anotherUser.getFriends();
 
         if (userFriends == null || anotherUserFriends == null) {
@@ -119,20 +95,15 @@ public class UserService {
                 .collect(Collectors.toSet());
     }
 
-    public void checkExisting(long id) throws NotFound {
-        if (storage.getById(id).isEmpty()) {
+    public User getWithCheck(long id) throws NotFound {
+        Optional<User> userOpt = storage.getById(id);
+
+        if (userOpt.isEmpty()) {
             log.warn("User with id {} not found", id);
             throw new NotFound("User with id " + id + " not found");
         }
-    }
 
-    private long getNextId() {
-        long currentMaxId = storage.getAll()
-                .stream()
-                .mapToLong(User::getId)
-                .max()
-                .orElse(0);
-        return ++currentMaxId;
+        return userOpt.get();
     }
 
     private void setUserNameIfNot(User user) {

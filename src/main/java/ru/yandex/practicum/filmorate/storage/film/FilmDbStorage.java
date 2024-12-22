@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.exceptions.NotFound;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.BaseDbStorage;
 
@@ -19,17 +18,18 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     private static final String GET_FILM_BY_ID = "SELECT * FROM films WHERE film_id = ?";
     private static final String UPDATE_FILM = "UPDATE films SET " +
             "name = ?, description = ?, release_date = ?, duration = ?, mpa_rating_id = ? WHERE film_id = ?";
-    private static final String GET_ALL_FILMS = "SELECT * FROM films WHERE film_id = ?";
+    private static final String GET_ALL_FILMS = "SELECT * FROM films";
     private static final String DELETE_FILM = "DELETE FROM films WHERE film_id = ?";
 
-    private static final String GET_GENRES_FOR_FILM = "SELECT genre_id FROM films_genre WHERE film_id = ?";
+    private static final String GET_GENRES_FOR_FILM = "SELECT genre_id FROM films_genre WHERE film_id = ? " +
+            "ORDER BY genre_id ASC";
     private static final String GET_GENRES_FOR_FILMS = "SELECT * FROM films_genre";
     private static final String ADD_GENRE_TO_FILM = "INSERT INTO films_genre (film_id, genre_id) VALUES (?, ?)";
     private static final String REMOVE_GENRE_FROM_FILM = "DELETE films_genre WHERE film_id = ? AND genre_id = ?";
 
     private static final String GET_LIKES_FOR_FILM = "SELECT user_id FROM film_likes WHERE film_id = ?";
     private static final String GET_LIKES_FOR_FILMS = "SELECT * FROM film_likes";
-    private static final String ADD_LIKE_TO_FILM = "INSERT INTO film_likes (film_id, uer_id) VALUES (?, ?)";
+    private static final String ADD_LIKE_TO_FILM = "INSERT INTO film_likes (film_id, user_id) VALUES (?, ?)";
     private static final String REMOVE_LIKE_FROM_FILM = "DELETE film_likes WHERE film_id = ? AND user_id = ?";
 
     public FilmDbStorage(JdbcTemplate jdbc, RowMapper<Film> mapper) {
@@ -46,17 +46,11 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
                 film.getDuration(),
                 film.getMpaRating()
         );
-        Optional<Film> newFilmOpt = getById(newId);
-
-        if (newFilmOpt.isEmpty()) {
-            throw new NotFound("Can't get new film with created id " + newId);
-        }
-
-        Film newFilm = newFilmOpt.get();
-        film.setId(newFilm.getId());
+        film.setId(newId);
         updateGenres(film);
         updateLikes(film);
-        return newFilm;
+
+        return getById(newId).orElseThrow();
     }
 
     @Override
@@ -91,13 +85,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         updateLikes(film);
         updateGenres(film);
 
-        Optional<Film> updatedFilmOpt = getById(film.getId());
-
-        if (updatedFilmOpt.isEmpty()) {
-            throw new NotFound("Can't get updated film with created id " + film.getId());
-        }
-
-        return updatedFilmOpt.get();
+        return getById(film.getId()).orElseThrow();
     }
 
     @Override

@@ -5,8 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.controller.checkers.*;
+import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
-import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.Collection;
@@ -17,7 +17,7 @@ import java.util.List;
 @Slf4j
 public class FilmController {
     private final FilmService service;
-    private final List<IChecker<Film>> checks;
+    private final List<IChecker<FilmDto>> checks;
 
     @Autowired
     public FilmController(FilmService service) {
@@ -32,7 +32,7 @@ public class FilmController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Film addFilm(@RequestBody Film film) {
+    public FilmDto addFilm(@RequestBody FilmDto film) {
         log.info("Request to add film: {}", film);
 
         doChecks(film);
@@ -40,7 +40,7 @@ public class FilmController {
     }
 
     @PutMapping
-    public Film updateFilm(@RequestBody Film film) {
+    public FilmDto updateFilm(@RequestBody FilmDto film) {
         log.info("Request to update film: {}", film);
 
         doChecks(film);
@@ -48,14 +48,14 @@ public class FilmController {
     }
 
     @GetMapping
-    public Collection<Film> getAll() {
+    public Collection<FilmDto> getAll() {
         log.info("Request to get all films");
 
         return service.getAll();
     }
 
     @GetMapping("/{id}")
-    public Film getFilm(@PathVariable Long id) {
+    public FilmDto getFilm(@PathVariable Long id) {
         log.info("Request to get film {}", id);
 
         return service.getById(id);
@@ -76,14 +76,14 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public Collection<Film> getPopularFilms(@RequestParam(defaultValue = "10") int count) {
+    public Collection<FilmDto> getPopularFilms(@RequestParam(defaultValue = "10") int count) {
         log.info("Request to get {} popular films", count);
 
         return service.getPopularFilms(count);
     }
 
-    private void doChecks(Film film) throws ValidationException {
-        for (IChecker<Film> checker : checks) {
+    private void doChecks(FilmDto film) throws ValidationException {
+        for (IChecker<FilmDto> checker : checks) {
             try {
                 checker.check(film);
             } catch (ValidationException exception) {

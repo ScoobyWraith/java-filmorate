@@ -1,13 +1,12 @@
 package ru.yandex.practicum.filmorate.controller.error;
 
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.yandex.practicum.filmorate.exceptions.NotFound;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
-
-import java.sql.SQLException;
 
 @RestControllerAdvice
 public class ErrorsHandler {
@@ -24,8 +23,8 @@ public class ErrorsHandler {
     }
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorResponse handleBDException(final SQLException e) {
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleDataAccessException(final DataAccessException e) {
         return new ErrorResponse("DB Exception", e.getMessage());
     }
 

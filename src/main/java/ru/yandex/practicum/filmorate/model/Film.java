@@ -19,7 +19,7 @@ public class Film {
     private int duration;
     private Set<Long> usersWhoLiked;
     private Set<Integer> genres;
-    private int mpaRating;
+    private Integer mpaRating;
 
     public void addLike(Long userId) {
         if (usersWhoLiked == null) {
@@ -27,14 +27,6 @@ public class Film {
         }
 
         usersWhoLiked.add(userId);
-    }
-
-    public void removeLike(Long userId) {
-        if (usersWhoLiked == null) {
-            return;
-        }
-
-        usersWhoLiked.remove(userId);
     }
 
     public void addGenre(Integer genreId) {
@@ -45,12 +37,12 @@ public class Film {
         genres.add(genreId);
     }
 
-    public void removeLike(Integer genreId) {
-        if (genres == null) {
+    public void removeLike(Long userId) {
+        if (usersWhoLiked == null) {
             return;
         }
 
-        genres.remove(genreId);
+        usersWhoLiked.remove(userId);
     }
 
     public int getLikedUsersQuantity() {

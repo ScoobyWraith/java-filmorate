@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.exceptions.NotFound;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.BaseDbStorage;
 
@@ -33,13 +32,7 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
     @Override
     public User add(User user) {
         long newId = insert(ADD_NEW_USER, user.getEmail(), user.getLogin(), user.getName(), user.getBirthday());
-        Optional<User> newUserOpt = getById(newId);
-
-        if (newUserOpt.isEmpty()) {
-            throw new NotFound("Can't get new user with created id " + newId);
-        }
-
-        return newUserOpt.get();
+        return getById(newId).orElseThrow();
     }
 
     @Override
@@ -73,14 +66,7 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
     public User update(User user) {
         update(UPDATE_USER, user.getEmail(), user.getLogin(), user.getName(), user.getBirthday(), user.getId());
         updateFriends(user);
-
-        Optional<User> updatedUserOpt = getById(user.getId());
-
-        if (updatedUserOpt.isEmpty()) {
-            throw new NotFound("Can't get updated user with created id " + user.getId());
-        }
-
-        return updatedUserOpt.get();
+        return getById(user.getId()).orElseThrow();
     }
 
     @Override
