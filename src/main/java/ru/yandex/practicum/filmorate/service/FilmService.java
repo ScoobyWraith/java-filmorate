@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.NotFound;
@@ -10,11 +9,15 @@ import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import java.util.Collection;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class FilmService {
     private final FilmStorage storage;
     private final UserService userService;
+
+    public FilmService(FilmStorage storage, UserService userService) {
+        this.storage = storage;
+        this.userService = userService;
+    }
 
     public Film getById(Long id) {
         checkExisting(id);

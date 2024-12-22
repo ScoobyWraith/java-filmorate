@@ -13,8 +13,9 @@ public class InMemoryUserStorage implements UserStorage {
     private final Map<Long, User> storage = new HashMap<>();
 
     @Override
-    public void add(User user) {
+    public User add(User user) {
         storage.put(user.getId(), user.toBuilder().build());
+        return user;
     }
 
     @Override
@@ -27,13 +28,15 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public void update(User user) {
+    public User update(User user) {
         storage.put(user.getId(), user.toBuilder().build());
+        return user;
     }
 
     @Override
-    public void deleteById(long id) {
+    public boolean deleteById(long id) {
         storage.remove(id);
+        return !storage.containsKey(id);
     }
 
     @Override
