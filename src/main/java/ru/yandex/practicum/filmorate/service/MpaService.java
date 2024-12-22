@@ -17,7 +17,7 @@ public class MpaService {
     }
 
     public Collection<MpaRating> getAll() {
-        return storage.getAllMpaRatings().values();
+        return storage.getAll().values();
     }
 
     public MpaRating getById(int id) {

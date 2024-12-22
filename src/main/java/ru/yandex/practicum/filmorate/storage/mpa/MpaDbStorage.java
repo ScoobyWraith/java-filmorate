@@ -19,7 +19,7 @@ public class MpaDbStorage implements MpaStorage {
     private final Map<Integer, MpaRating> mpa = new HashMap<>();
 
     @Override
-    public Map<Integer, MpaRating> getAllMpaRatings() {
+    public Map<Integer, MpaRating> getAll() {
         createAllMpaRatingIfNeeded();
         return mpa;
     }

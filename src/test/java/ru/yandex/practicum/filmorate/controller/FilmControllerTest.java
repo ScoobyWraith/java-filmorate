@@ -1,14 +1,21 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.exceptions.NotFound;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
+import ru.yandex.practicum.filmorate.mappers.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
+import ru.yandex.practicum.filmorate.storage.genre.InMemoryGenreStorage;
+import ru.yandex.practicum.filmorate.storage.mpa.InMemoryMpaStorage;
+import ru.yandex.practicum.filmorate.storage.mpa.MpaStorage;
 import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
@@ -20,13 +27,21 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class FilmControllerTest {
     private FilmController controller;
+    private MpaStorage mpaStorage;
+    private GenreStorage genreStorage;
+
+    @BeforeAll
+    public static void beforeAll() {
+        MpaStorage mpaStorage = new InMemoryMpaStorage();
+        GenreStorage genreStorage = new InMemoryGenreStorage();
+    }
 
     @BeforeEach
     public void createController() {
         FilmStorage storage = new InMemoryFilmStorage();
         UserStorage userStorage = new InMemoryUserStorage();
         UserService userService = new UserService(userStorage);
-        FilmService service = new FilmService(storage, userService);
+        FilmService service = new FilmService(storage, genreStorage, mpaStorage, userService);
         controller = new FilmController(service);
     }
 
@@ -39,7 +54,8 @@ class FilmControllerTest {
                 .releaseDate(LocalDate.of(1980, 1, 1))
                 .build();
 
-        final Film filmFromController = controller.addFilm(film);
+        FilmDto filmDto = FilmMapper.filmToFilmDto(film, genreStorage, mpaStorage);
+        final Film filmFromController = FilmMapper.filmDtoToFilm(controller.addFilm(filmDto));
 
         assertEquals(film.getName(), filmFromController.getName(), "Wrong film name");
         assertEquals(film.getDescription(), filmFromController.getDescription(), "Wrong film description");
@@ -56,11 +72,14 @@ class FilmControllerTest {
                 .releaseDate(LocalDate.of(1980, 1, 1))
                 .build();
 
-        final Film filmFromController = controller.addFilm(film);
+        FilmDto filmDto = FilmMapper.filmToFilmDto(film, genreStorage, mpaStorage);
+        final Film filmFromController = FilmMapper.filmDtoToFilm(controller.addFilm(filmDto));
+
         final Film updatedFilm = filmFromController.toBuilder()
                 .releaseDate(LocalDate.of(1970, 12, 12))
                 .build();
-        final Film updatedFilmFromController = controller.updateFilm(updatedFilm);
+        filmDto = FilmMapper.filmToFilmDto(updatedFilm, genreStorage, mpaStorage);
+        final Film updatedFilmFromController = FilmMapper.filmDtoToFilm(controller.updateFilm(filmDto));
 
         assertEquals(updatedFilm.getName(), updatedFilmFromController.getName(), "Wrong film name");
         assertEquals(updatedFilm.getDescription(), updatedFilmFromController.getDescription(), "Wrong film description");
@@ -79,7 +98,7 @@ class FilmControllerTest {
                 .build();
 
         assertThrows(NotFound.class, () -> {
-            controller.updateFilm(film);
+            controller.updateFilm(FilmMapper.filmToFilmDto(film, genreStorage, mpaStorage));
         }, "Can update unknown film");
     }
 
@@ -94,7 +113,7 @@ class FilmControllerTest {
                 .build();
 
         assertThrows(ValidationException.class, () -> {
-            controller.addFilm(film);
+            controller.addFilm(FilmMapper.filmToFilmDto(film, genreStorage, mpaStorage));
         }, "Can add film with long description");
     }
 
@@ -108,7 +127,7 @@ class FilmControllerTest {
                 .build();
 
         assertThrows(ValidationException.class, () -> {
-            controller.addFilm(film);
+            controller.addFilm(FilmMapper.filmToFilmDto(film, genreStorage, mpaStorage));
         }, "Can add film with negative duration");
     }
 
@@ -119,7 +138,7 @@ class FilmControllerTest {
                 .releaseDate(LocalDate.of(1980, 1, 1))
                 .build();
         assertThrows(ValidationException.class, () -> {
-            controller.addFilm(film);
+            controller.addFilm(FilmMapper.filmToFilmDto(film, genreStorage, mpaStorage));
         }, "Can add film without name");
     }
 
@@ -131,7 +150,7 @@ class FilmControllerTest {
                 .releaseDate(LocalDate.of(1880, 1, 1))
                 .build();
         assertThrows(ValidationException.class, () -> {
-            controller.addFilm(film);
+            controller.addFilm(FilmMapper.filmToFilmDto(film, genreStorage, mpaStorage));
         }, "Can add film before than 28.12.1895");
     }
 
@@ -145,9 +164,9 @@ class FilmControllerTest {
                 .build();
         final Film film2 = film1.toBuilder().name("film name 1").build();
 
-        controller.addFilm(film1);
-        controller.addFilm(film2);
-        Collection<Film> films = controller.getAll();
+        controller.addFilm(FilmMapper.filmToFilmDto(film1, genreStorage, mpaStorage));
+        controller.addFilm(FilmMapper.filmToFilmDto(film2, genreStorage, mpaStorage));
+        Collection<FilmDto> films = controller.getAll();
 
         assertEquals(2, films.size(), "Wrong number of films");
     }

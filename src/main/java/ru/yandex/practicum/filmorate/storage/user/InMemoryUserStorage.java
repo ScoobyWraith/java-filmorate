@@ -14,6 +14,8 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User add(User user) {
+        long newId = getNextId();
+        user.setId(newId);
         storage.put(user.getId(), user.toBuilder().build());
         return user;
     }
@@ -42,5 +44,14 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public Collection<User> getAll() {
         return storage.values();
+    }
+
+    private long getNextId() {
+        long currentMaxId = getAll()
+                .stream()
+                .mapToLong(User::getId)
+                .max()
+                .orElse(0);
+        return ++currentMaxId;
     }
 }

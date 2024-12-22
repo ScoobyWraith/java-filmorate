@@ -19,7 +19,7 @@ public class GenreDbStorage implements GenreStorage {
     private final Map<Integer, FilmGenre> genres = new HashMap<>();
 
     @Override
-    public Map<Integer, FilmGenre> getAllGenres() {
+    public Map<Integer, FilmGenre> getAll() {
         createGenresIfNeeded();
         return genres;
     }

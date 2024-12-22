@@ -14,6 +14,8 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Film add(Film film) {
+        long newId = getNextId();
+        film.setId(newId);
         storage.put(film.getId(), film.toBuilder().build());
         return film;
     }
@@ -42,5 +44,14 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Override
     public Collection<Film> getAll() {
         return storage.values();
+    }
+
+    private long getNextId() {
+        long currentMaxId = getAll()
+                .stream()
+                .mapToLong(Film::getId)
+                .max()
+                .orElse(0);
+        return ++currentMaxId;
     }
 }

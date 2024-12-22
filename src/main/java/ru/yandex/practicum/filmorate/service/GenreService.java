@@ -17,7 +17,7 @@ public class GenreService {
     }
 
     public Collection<FilmGenre> getAll() {
-        return storage.getAllGenres().values();
+        return storage.getAll().values();
     }
 
     public FilmGenre getById(int id) {
