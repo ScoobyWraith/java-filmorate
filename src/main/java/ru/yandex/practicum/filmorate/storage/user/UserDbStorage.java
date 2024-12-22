@@ -77,7 +77,7 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
         Optional<User> updatedUserOpt = getById(user.getId());
 
         if (updatedUserOpt.isEmpty()) {
-            throw new NotFound("Can't get udated user with created id " + user.getId());
+            throw new NotFound("Can't get updated user with created id " + user.getId());
         }
 
         return updatedUserOpt.get();
@@ -90,19 +90,6 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
 
     private void updateFriends(User user) {
         List<Long> currentFriends = jdbc.queryForList(GET_FRIENDS_FOR_USER, Long.class, user.getId());
-
-        List<Long> toRemove = new ArrayList<>(currentFriends);
-        toRemove.removeAll(user.getFriends());
-
-        List<Long> toAdd = new ArrayList<>(user.getFriends());
-        toAdd.removeAll(currentFriends);
-
-        for (Long newFriendId : toAdd) {
-            update(ADD_FRIEND_TO_USER, user.getId(), newFriendId);
-        }
-
-        for (Long friendIdToRemove : toRemove) {
-            update(REMOVE_FRIEND_FROM_USER, user.getId(), friendIdToRemove);
-        }
+        updateSet(user.getId(), currentFriends, user.getFriends(), ADD_FRIEND_TO_USER, REMOVE_FRIEND_FROM_USER);
     }
 }

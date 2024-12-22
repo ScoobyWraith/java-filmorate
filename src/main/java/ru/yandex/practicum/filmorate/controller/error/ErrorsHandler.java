@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.yandex.practicum.filmorate.exceptions.NotFound;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 
+import java.sql.SQLException;
+
 @RestControllerAdvice
 public class ErrorsHandler {
     @ExceptionHandler
@@ -19,6 +21,12 @@ public class ErrorsHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleValidationException(final ValidationException e) {
         return new ErrorResponse("Validation error", e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleBDException(final SQLException e) {
+        return new ErrorResponse("DB Exception", e.getMessage());
     }
 
     @ExceptionHandler

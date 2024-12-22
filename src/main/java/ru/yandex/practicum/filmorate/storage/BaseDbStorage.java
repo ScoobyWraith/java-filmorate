@@ -6,10 +6,12 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import ru.yandex.practicum.filmorate.exceptions.InsertDataException;
+import ru.yandex.practicum.filmorate.util.SetUpdateExtractor;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -72,5 +74,21 @@ public class BaseDbStorage<T> {
 
     protected boolean delete(String query, long id) {
         return update(query, id);
+    }
+
+    protected <U> void updateSet(Long id,
+                                 Collection<U> currentSet,
+                                 Collection<U> newSet,
+                                 String addQuery,
+                                 String removeQuery) {
+        SetUpdateExtractor<U> updatedSet = new SetUpdateExtractor<>(currentSet, newSet);
+
+        for (U newId : updatedSet.getToAdd()) {
+            update(addQuery, id, newId);
+        }
+
+        for (U removeId : updatedSet.getToRemove()) {
+            update(removeQuery, id, removeId);
+        }
     }
 }

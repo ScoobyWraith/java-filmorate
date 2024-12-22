@@ -13,8 +13,9 @@ public class InMemoryFilmStorage implements FilmStorage {
     private final Map<Long, Film> storage = new HashMap<>();
 
     @Override
-    public void add(Film film) {
+    public Film add(Film film) {
         storage.put(film.getId(), film.toBuilder().build());
+        return film;
     }
 
     @Override
@@ -27,13 +28,15 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public void update(Film film) {
+    public Film update(Film film) {
         storage.put(film.getId(), film.toBuilder().build());
+        return film;
     }
 
     @Override
-    public void deleteById(long id) {
+    public boolean deleteById(long id) {
         storage.remove(id);
+        return true;
     }
 
     @Override
