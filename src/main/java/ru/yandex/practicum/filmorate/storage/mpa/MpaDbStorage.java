@@ -36,9 +36,9 @@ public class MpaDbStorage implements MpaStorage {
         }
 
         jdbc.query(GET_ALL_MPA, (ResultSet rs) -> {
-            Integer mpa_id = rs.getInt("mpa_rating_id");
+            Integer mpaId = rs.getInt("mpa_rating_id");
             String name = rs.getString("name");
-            mpa.put(mpa_id, new MpaRating(mpa_id, name));
+            mpa.put(mpaId, new MpaRating(mpaId, name));
         });
     }
 }
