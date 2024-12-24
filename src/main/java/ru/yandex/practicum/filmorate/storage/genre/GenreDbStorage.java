@@ -14,7 +14,7 @@ import java.util.Map;
 @Qualifier("DBStorage")
 @RequiredArgsConstructor
 public class GenreDbStorage implements GenreStorage {
-    private static final String GET_ALL_GENRES = "SELECT * FROM genre";
+    private static final String GET_ALL_GENRES = "SELECT * FROM genres";
     private final JdbcTemplate jdbc;
     private final Map<Integer, FilmGenre> genres = new HashMap<>();
 

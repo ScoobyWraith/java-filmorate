@@ -25,16 +25,16 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     private static final String GET_ALL_FILMS = "SELECT * FROM films";
     private static final String DELETE_FILM = "DELETE FROM films WHERE film_id = ?";
 
-    private static final String GET_GENRES_FOR_FILM = "SELECT genre_id FROM films_genre WHERE film_id = ? " +
+    private static final String GET_GENRES_FOR_FILM = "SELECT genre_id FROM films_genres WHERE film_id = ? " +
             "ORDER BY genre_id ASC";
-    private static final String GET_GENRES_FOR_FILMS = "SELECT * FROM films_genre";
-    private static final String ADD_GENRE_TO_FILM = "INSERT INTO films_genre (film_id, genre_id) VALUES (?, ?)";
-    private static final String REMOVE_GENRE_FROM_FILM = "DELETE films_genre WHERE film_id = ? AND genre_id = ?";
+    private static final String GET_GENRES_FOR_FILMS = "SELECT * FROM films_genres";
+    private static final String ADD_GENRE_TO_FILM = "INSERT INTO films_genres (film_id, genre_id) VALUES (?, ?)";
+    private static final String REMOVE_GENRE_FROM_FILM = "DELETE films_genres WHERE film_id = ? AND genre_id = ?";
 
-    private static final String GET_LIKES_FOR_FILM = "SELECT user_id FROM film_likes WHERE film_id = ?";
-    private static final String GET_LIKES_FOR_FILMS = "SELECT * FROM film_likes";
-    private static final String ADD_LIKE_TO_FILM = "INSERT INTO film_likes (film_id, user_id) VALUES (?, ?)";
-    private static final String REMOVE_LIKE_FROM_FILM = "DELETE film_likes WHERE film_id = ? AND user_id = ?";
+    private static final String GET_LIKES_FOR_FILM = "SELECT user_id FROM films_likes WHERE film_id = ?";
+    private static final String GET_LIKES_FOR_FILMS = "SELECT * FROM films_likes";
+    private static final String ADD_LIKE_TO_FILM = "INSERT INTO films_likes (film_id, user_id) VALUES (?, ?)";
+    private static final String REMOVE_LIKE_FROM_FILM = "DELETE films_likes WHERE film_id = ? AND user_id = ?";
 
     public FilmDbStorage(JdbcTemplate jdbc, RowMapper<Film> mapper) {
         super(jdbc, mapper);

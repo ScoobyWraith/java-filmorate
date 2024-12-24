@@ -14,7 +14,7 @@ import java.util.Map;
 @Qualifier("DBStorage")
 @RequiredArgsConstructor
 public class MpaDbStorage implements MpaStorage {
-    private static final String GET_ALL_MPA = "SELECT * FROM mpa_rating";
+    private static final String GET_ALL_MPA = "SELECT * FROM mpa_ratings";
     private final JdbcTemplate jdbc;
     private final Map<Integer, MpaRating> mpa = new HashMap<>();
 
