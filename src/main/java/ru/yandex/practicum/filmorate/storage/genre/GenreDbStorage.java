@@ -36,9 +36,9 @@ public class GenreDbStorage implements GenreStorage {
         }
 
         jdbc.query(GET_ALL_GENRES, (ResultSet rs) -> {
-            Integer genre_id = rs.getInt("genre_id");
+            Integer genreId = rs.getInt("genre_id");
             String name = rs.getString("name");
-            genres.put(genre_id, new FilmGenre(genre_id, name));
+            genres.put(genreId, new FilmGenre(genreId, name));
         });
     }
 }
