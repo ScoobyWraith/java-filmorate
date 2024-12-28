@@ -5,29 +5,37 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.FilmGenre;
 import ru.yandex.practicum.filmorate.storage.BaseDbStorage;
 
 import java.sql.ResultSet;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Repository
 @Qualifier("DBStorage")
 public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     private static final String ADD_NEW_FILM = "INSERT INTO films " +
             "(name, description, release_date, duration, mpa_rating_id) VALUES (?, ?, ?, ?, ?)";
-    private static final String GET_FILM_BY_ID = "SELECT * FROM films WHERE film_id = ?";
+    private static final String GET_FILM_BY_ID = "SELECT f.*, m.name AS mpa_name FROM films f JOIN mpa_ratings m " +
+            "ON f.mpa_rating_id = m.mpa_rating_id WHERE f.film_id = ? LIMIT 1";
     private static final String UPDATE_FILM = "UPDATE films SET " +
             "name = ?, description = ?, release_date = ?, duration = ?, mpa_rating_id = ? WHERE film_id = ?";
-    private static final String GET_ALL_FILMS = "SELECT * FROM films";
+    private static final String GET_ALL_FILMS = "SELECT f.*, m.name AS mpa_name FROM films f JOIN mpa_ratings m " +
+            "ON f.mpa_rating_id = m.mpa_rating_id";
     private static final String DELETE_FILM = "DELETE FROM films WHERE film_id = ?";
 
-    private static final String GET_GENRES_FOR_FILM = "SELECT genre_id FROM films_genres WHERE film_id = ? " +
-            "ORDER BY genre_id ASC";
-    private static final String GET_GENRES_FOR_FILMS = "SELECT * FROM films_genres";
+    private static final String GET_GENRES_FOR_FILM = "SELECT g.genre_id, g.name FROM films_genres fg JOIN genres g " +
+            "ON fg.genre_id = g.genre_id WHERE fg.film_id = ? ORDER BY g.genre_id";
+    private static final String GET_GENRES_IDS__FOR_FILM = "SELECT genre_id FROM films_genres WHERE film_id = ?";
+    private static final String GET_GENRES_FOR_FILMS = "SELECT fg.film_id, g.genre_id, g.name FROM films_genres fg " +
+            "JOIN genres g ON fg.genre_id = g.genre_id";
     private static final String ADD_GENRE_TO_FILM = "INSERT INTO films_genres (film_id, genre_id) VALUES (?, ?)";
     private static final String REMOVE_GENRE_FROM_FILM = "DELETE films_genres WHERE film_id = ? AND genre_id = ?";
 
@@ -48,13 +56,30 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
                 film.getDescription(),
                 film.getReleaseDate(),
                 film.getDuration(),
-                film.getMpaRating()
+                film.getMpaRating().getId()
         );
         film.setId(newId);
         updateGenres(film);
-        updateLikes(film);
 
-        return getById(newId).orElseThrow();
+        return getById(film.getId()).orElseThrow();
+    }
+
+    @Override
+    public Film update(Film film) {
+        update(
+                UPDATE_FILM,
+                film.getName(),
+                film.getDescription(),
+                film.getReleaseDate(),
+                film.getDuration(),
+                film.getMpaRating().getId(),
+                film.getId()
+        );
+
+        updateLikes(film);
+        updateGenres(film);
+
+        return getById(film.getId()).orElseThrow();
     }
 
     @Override
@@ -66,40 +91,25 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         }
 
         Film film = filmOpt.get();
-        List<Integer> genres = jdbc.queryForList(GET_GENRES_FOR_FILM, Integer.class, id);
+        Set<FilmGenre> genres = new LinkedHashSet<>();
+
+        jdbc.query(GET_GENRES_FOR_FILM, (ResultSet rs) -> {
+            int genreId = rs.getInt("genre_id");
+            String name = rs.getString("name");
+            genres.add(new FilmGenre(genreId, name));
+        }, id);
+
         List<Long> likes = jdbc.queryForList(GET_LIKES_FOR_FILM, Long.class, id);
 
-        film.setGenres(new HashSet<>(genres));
+        film.setGenres(genres);
         film.setUsersWhoLiked(new HashSet<>(likes));
 
         return Optional.of(film);
     }
 
     @Override
-    public Film update(Film film) {
-        update(
-                UPDATE_FILM,
-                film.getName(),
-                film.getDescription(),
-                film.getReleaseDate(),
-                film.getDuration(),
-                film.getMpaRating(),
-                film.getId()
-        );
-        updateLikes(film);
-        updateGenres(film);
-
-        return getById(film.getId()).orElseThrow();
-    }
-
-    @Override
-    public boolean deleteById(long id) {
-        return delete(DELETE_FILM, id);
-    }
-
-    @Override
     public Collection<Film> getAll() {
-        HashMap<Long, Film> films = getMapWithAllById(GET_ALL_FILMS);
+        HashMap<Long, Film> films = getMapWithAllById(GET_ALL_FILMS, "film_id");
 
         jdbc.query(GET_LIKES_FOR_FILMS, (ResultSet rs) -> {
             long filmId = rs.getLong("film_id");
@@ -110,15 +120,30 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         jdbc.query(GET_GENRES_FOR_FILMS, (ResultSet rs) -> {
             long filmId = rs.getLong("film_id");
             int genreId = rs.getInt("genre_id");
-            films.get(filmId).addGenre(genreId);
+            String name = rs.getString("name");
+            Film film = films.get(filmId);
+
+            if (film.getGenres() == null) {
+                film.setGenres(new HashSet<>());
+            }
+
+            film.getGenres().add(new FilmGenre(genreId, name));
         });
 
         return films.values();
     }
 
+    @Override
+    public boolean deleteById(long id) {
+        return delete(DELETE_FILM, id);
+    }
+
     private void updateGenres(Film film) {
-        List<Integer> currentGenres = jdbc.queryForList(GET_GENRES_FOR_FILM, Integer.class, film.getId());
-        updateSet(film.getId(), currentGenres, film.getGenres(), ADD_GENRE_TO_FILM, REMOVE_GENRE_FROM_FILM);
+        List<Integer> currentGenres = jdbc.queryForList(GET_GENRES_IDS__FOR_FILM, Integer.class, film.getId());
+        Set<Integer> newGenres = film.getGenres() == null
+                ? null
+                : film.getGenres().stream().map(FilmGenre::getId).collect(Collectors.toSet());
+        updateSet(film.getId(), currentGenres, newGenres, ADD_GENRE_TO_FILM, REMOVE_GENRE_FROM_FILM);
     }
 
     private void updateLikes(Film film) {

@@ -18,8 +18,8 @@ public class Film {
     private LocalDate releaseDate;
     private int duration;
     private Set<Long> usersWhoLiked;
-    private Set<Integer> genres;
-    private Integer mpaRating;
+    private Set<FilmGenre> genres;
+    private MpaRating mpaRating;
 
     public void addLike(Long userId) {
         if (usersWhoLiked == null) {
@@ -27,14 +27,6 @@ public class Film {
         }
 
         usersWhoLiked.add(userId);
-    }
-
-    public void addGenre(Integer genreId) {
-        if (genres == null) {
-            genres = new HashSet<>();
-        }
-
-        genres.add(genreId);
     }
 
     public void removeLike(Long userId) {

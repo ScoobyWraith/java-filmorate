@@ -34,11 +34,11 @@ public class BaseDbStorage<T> {
         return jdbc.query(query, mapper, params);
     }
 
-    protected HashMap<Long, T> getMapWithAllById(String query) {
+    protected HashMap<Long, T> getMapWithAllById(String query, String keyName) {
         HashMap<Long, T> result = new HashMap<>();
 
         jdbc.query(query, (ResultSet rs) -> {
-            Long id = rs.getLong(1);
+            Long id = rs.getLong(keyName);
             result.put(id, mapper.mapRow(rs, rs.getRow()));
         });
 
@@ -48,8 +48,10 @@ public class BaseDbStorage<T> {
     protected long insert(String query, Object... params) {
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.update(connection -> {
-            PreparedStatement ps = connection
-                    .prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+            PreparedStatement ps = connection.prepareStatement(
+                    query,
+                    Statement.RETURN_GENERATED_KEYS
+            );
 
             for (int idx = 0; idx < params.length; idx++) {
                 ps.setObject(idx + 1, params[idx]);

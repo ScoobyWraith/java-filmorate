@@ -140,7 +140,7 @@ class FilmorateApplicationTests {
                 .description("film description")
                 .duration(120)
                 .releaseDate(LocalDate.of(1980, 1, 1))
-                .mpaRating(3)
+                .mpaRating(new MpaRating(1, "G"))
                 .build();
 
         final Film filmFromStorage = filmStorage.add(film);
@@ -158,7 +158,7 @@ class FilmorateApplicationTests {
                 .description("film description")
                 .duration(100)
                 .releaseDate(LocalDate.of(1980, 1, 1))
-                .mpaRating(1)
+                .mpaRating(new MpaRating(1, "G"))
                 .build();
 
         final Film filmFromStorage = filmStorage.add(film);
@@ -181,6 +181,7 @@ class FilmorateApplicationTests {
                 .description("film description")
                 .duration(85)
                 .releaseDate(LocalDate.of(1980, 1, 1))
+                .mpaRating(new MpaRating(1, "G"))
                 .build();
 
         assertThrows(NoSuchElementException.class, () -> {
@@ -196,6 +197,7 @@ class FilmorateApplicationTests {
                         "...................................................................................." +
                         "....................................................................................")
                 .releaseDate(LocalDate.of(1980, 1, 1))
+                .mpaRating(new MpaRating(1, "G"))
                 .build();
 
         assertThrows(DataIntegrityViolationException.class, () -> {
@@ -210,6 +212,7 @@ class FilmorateApplicationTests {
                 .description("film description")
                 .duration(-2)
                 .releaseDate(LocalDate.of(1980, 1, 1))
+                .mpaRating(new MpaRating(1, "G"))
                 .build();
 
         assertThrows(DataIntegrityViolationException.class, () -> {
@@ -222,6 +225,7 @@ class FilmorateApplicationTests {
         final Film film = Film.builder()
                 .description("film description")
                 .releaseDate(LocalDate.of(1980, 1, 1))
+                .mpaRating(new MpaRating(1, "G"))
                 .build();
         assertThrows(DataIntegrityViolationException.class, () -> {
             filmStorage.add(film);
@@ -235,7 +239,7 @@ class FilmorateApplicationTests {
                 .description("film description")
                 .duration(95)
                 .releaseDate(LocalDate.of(2000, 1, 1))
-                .mpaRating(2)
+                .mpaRating(new MpaRating(1, "G"))
                 .build();
         final Film film2 = film1.toBuilder().name("film name 1").build();
 
@@ -253,7 +257,7 @@ class FilmorateApplicationTests {
                 .description("film description")
                 .duration(95)
                 .releaseDate(LocalDate.of(2000, 1, 1))
-                .mpaRating(2)
+                .mpaRating(new MpaRating(1, "G"))
                 .build();
 
         Film createdFilm = filmStorage.add(film);

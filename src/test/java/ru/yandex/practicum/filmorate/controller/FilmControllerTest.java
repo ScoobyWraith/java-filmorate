@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
@@ -8,13 +7,12 @@ import ru.yandex.practicum.filmorate.exceptions.NotFound;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.mappers.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.MpaRating;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
 import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
-import ru.yandex.practicum.filmorate.storage.genre.InMemoryGenreStorage;
-import ru.yandex.practicum.filmorate.storage.mpa.InMemoryMpaStorage;
 import ru.yandex.practicum.filmorate.storage.mpa.MpaStorage;
 import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
@@ -29,12 +27,6 @@ class FilmControllerTest {
     private FilmController controller;
     private MpaStorage mpaStorage;
     private GenreStorage genreStorage;
-
-    @BeforeAll
-    public static void beforeAll() {
-        MpaStorage mpaStorage = new InMemoryMpaStorage();
-        GenreStorage genreStorage = new InMemoryGenreStorage();
-    }
 
     @BeforeEach
     public void createController() {
@@ -52,9 +44,10 @@ class FilmControllerTest {
                 .description("film description")
                 .duration(120)
                 .releaseDate(LocalDate.of(1980, 1, 1))
+                .mpaRating(new MpaRating(1, "G"))
                 .build();
 
-        FilmDto filmDto = FilmMapper.filmToFilmDto(film, genreStorage, mpaStorage);
+        FilmDto filmDto = FilmMapper.filmToFilmDto(film);
         final Film filmFromController = FilmMapper.filmDtoToFilm(controller.addFilm(filmDto));
 
         assertEquals(film.getName(), filmFromController.getName(), "Wrong film name");
@@ -70,15 +63,16 @@ class FilmControllerTest {
                 .description("film description")
                 .duration(100)
                 .releaseDate(LocalDate.of(1980, 1, 1))
+                .mpaRating(new MpaRating(1, "G"))
                 .build();
 
-        FilmDto filmDto = FilmMapper.filmToFilmDto(film, genreStorage, mpaStorage);
+        FilmDto filmDto = FilmMapper.filmToFilmDto(film);
         final Film filmFromController = FilmMapper.filmDtoToFilm(controller.addFilm(filmDto));
 
         final Film updatedFilm = filmFromController.toBuilder()
                 .releaseDate(LocalDate.of(1970, 12, 12))
                 .build();
-        filmDto = FilmMapper.filmToFilmDto(updatedFilm, genreStorage, mpaStorage);
+        filmDto = FilmMapper.filmToFilmDto(updatedFilm);
         final Film updatedFilmFromController = FilmMapper.filmDtoToFilm(controller.updateFilm(filmDto));
 
         assertEquals(updatedFilm.getName(), updatedFilmFromController.getName(), "Wrong film name");
@@ -95,10 +89,11 @@ class FilmControllerTest {
                 .description("film description")
                 .duration(85)
                 .releaseDate(LocalDate.of(1980, 1, 1))
+                .mpaRating(new MpaRating(1, "G"))
                 .build();
 
         assertThrows(NotFound.class, () -> {
-            controller.updateFilm(FilmMapper.filmToFilmDto(film, genreStorage, mpaStorage));
+            controller.updateFilm(FilmMapper.filmToFilmDto(film));
         }, "Can update unknown film");
     }
 
@@ -110,10 +105,11 @@ class FilmControllerTest {
                         "...................................................................................." +
                         "....................................................................................")
                 .releaseDate(LocalDate.of(1980, 1, 1))
+                .mpaRating(new MpaRating(1, "G"))
                 .build();
 
         assertThrows(ValidationException.class, () -> {
-            controller.addFilm(FilmMapper.filmToFilmDto(film, genreStorage, mpaStorage));
+            controller.addFilm(FilmMapper.filmToFilmDto(film));
         }, "Can add film with long description");
     }
 
@@ -124,10 +120,11 @@ class FilmControllerTest {
                 .description("film description")
                 .duration(-2)
                 .releaseDate(LocalDate.of(1980, 1, 1))
+                .mpaRating(new MpaRating(1, "G"))
                 .build();
 
         assertThrows(ValidationException.class, () -> {
-            controller.addFilm(FilmMapper.filmToFilmDto(film, genreStorage, mpaStorage));
+            controller.addFilm(FilmMapper.filmToFilmDto(film));
         }, "Can add film with negative duration");
     }
 
@@ -136,9 +133,10 @@ class FilmControllerTest {
         final Film film = Film.builder()
                 .description("film description")
                 .releaseDate(LocalDate.of(1980, 1, 1))
+                .mpaRating(new MpaRating(1, "G"))
                 .build();
         assertThrows(ValidationException.class, () -> {
-            controller.addFilm(FilmMapper.filmToFilmDto(film, genreStorage, mpaStorage));
+            controller.addFilm(FilmMapper.filmToFilmDto(film));
         }, "Can add film without name");
     }
 
@@ -148,9 +146,10 @@ class FilmControllerTest {
                 .name("film name")
                 .description("film description")
                 .releaseDate(LocalDate.of(1880, 1, 1))
+                .mpaRating(new MpaRating(1, "G"))
                 .build();
         assertThrows(ValidationException.class, () -> {
-            controller.addFilm(FilmMapper.filmToFilmDto(film, genreStorage, mpaStorage));
+            controller.addFilm(FilmMapper.filmToFilmDto(film));
         }, "Can add film before than 28.12.1895");
     }
 
@@ -161,11 +160,12 @@ class FilmControllerTest {
                 .description("film description")
                 .duration(95)
                 .releaseDate(LocalDate.of(2000, 1, 1))
+                .mpaRating(new MpaRating(1, "G"))
                 .build();
         final Film film2 = film1.toBuilder().name("film name 1").build();
 
-        controller.addFilm(FilmMapper.filmToFilmDto(film1, genreStorage, mpaStorage));
-        controller.addFilm(FilmMapper.filmToFilmDto(film2, genreStorage, mpaStorage));
+        controller.addFilm(FilmMapper.filmToFilmDto(film1));
+        controller.addFilm(FilmMapper.filmToFilmDto(film2));
         Collection<FilmDto> films = controller.getAll();
 
         assertEquals(2, films.size(), "Wrong number of films");

@@ -55,7 +55,7 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
 
     @Override
     public Collection<User> getAll() {
-        HashMap<Long, User> users = getMapWithAllById(GET_ALL_USERS);
+        HashMap<Long, User> users = getMapWithAllById(GET_ALL_USERS, "user_id");
 
         jdbc.query(GET_FRIENDS_FOR_USERS, (ResultSet rs) -> {
             long sender = rs.getLong("sender");

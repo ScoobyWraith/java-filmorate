@@ -19,8 +19,6 @@ import java.util.Optional;
 public class FilmService {
     private final FilmStorage storage;
     private final UserService userService;
-    private final GenreStorage genreStorage;
-    private final MpaStorage mpaStorage;
 
     public FilmService(@Qualifier("DBStorage") FilmStorage storage,
                        @Qualifier("DBStorage") GenreStorage genreStorage,
@@ -28,12 +26,10 @@ public class FilmService {
                        UserService userService) {
         this.storage = storage;
         this.userService = userService;
-        this.genreStorage = genreStorage;
-        this.mpaStorage = mpaStorage;
     }
 
     public FilmDto getById(Long id) {
-        return FilmMapper.filmToFilmDto(getWithCheck(id), genreStorage, mpaStorage);
+        return FilmMapper.filmToFilmDto(getWithCheck(id));
     }
 
     public FilmDto add(FilmDto filmDto) {
@@ -41,20 +37,20 @@ public class FilmService {
         film = storage.add(film);
         log.info("Film '{}' successfully added", film);
 
-        return FilmMapper.filmToFilmDto(film, genreStorage, mpaStorage);
+        return FilmMapper.filmToFilmDto(film);
     }
 
     public FilmDto update(FilmDto filmDto) {
-        Film film = getWithCheck(filmDto.getId());
-        film = storage.update(FilmMapper.filmDtoToFilm(filmDto));
+        getWithCheck(filmDto.getId());
+        Film film = storage.update(FilmMapper.filmDtoToFilm(filmDto));
         log.info("Film '{}' successfully updated", film);
 
-        return FilmMapper.filmToFilmDto(film, genreStorage, mpaStorage);
+        return FilmMapper.filmToFilmDto(film);
     }
 
     public Collection<FilmDto> getAll() {
         return storage.getAll().stream()
-                .map(film -> FilmMapper.filmToFilmDto(film, genreStorage, mpaStorage))
+                .map(FilmMapper::filmToFilmDto)
                 .toList();
     }
 
@@ -81,7 +77,7 @@ public class FilmService {
                 .stream()
                 .sorted((f1, f2) -> f2.getLikedUsersQuantity() - f1.getLikedUsersQuantity())
                 .limit(size)
-                .map(film -> FilmMapper.filmToFilmDto(film, genreStorage, mpaStorage))
+                .map(FilmMapper::filmToFilmDto)
                 .toList();
     }
 
