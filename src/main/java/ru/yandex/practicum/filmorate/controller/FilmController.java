@@ -3,10 +3,23 @@ package ru.yandex.practicum.filmorate.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.controller.checkers.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+import ru.yandex.practicum.filmorate.controller.checkers.FilmDescriptionChecker;
+import ru.yandex.practicum.filmorate.controller.checkers.FilmDurationChecker;
+import ru.yandex.practicum.filmorate.controller.checkers.FilmNameChecker;
+import ru.yandex.practicum.filmorate.controller.checkers.FilmReleaseDateChecker;
+import ru.yandex.practicum.filmorate.controller.checkers.IChecker;
+import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
-import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.Collection;
@@ -17,7 +30,7 @@ import java.util.List;
 @Slf4j
 public class FilmController {
     private final FilmService service;
-    private final List<IChecker<Film>> checks;
+    private final List<IChecker<FilmDto>> checks;
 
     @Autowired
     public FilmController(FilmService service) {
@@ -32,7 +45,7 @@ public class FilmController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Film addFilm(@RequestBody Film film) {
+    public FilmDto addFilm(@RequestBody FilmDto film) {
         log.info("Request to add film: {}", film);
 
         doChecks(film);
@@ -40,7 +53,7 @@ public class FilmController {
     }
 
     @PutMapping
-    public Film updateFilm(@RequestBody Film film) {
+    public FilmDto updateFilm(@RequestBody FilmDto film) {
         log.info("Request to update film: {}", film);
 
         doChecks(film);
@@ -48,14 +61,14 @@ public class FilmController {
     }
 
     @GetMapping
-    public Collection<Film> getAll() {
+    public Collection<FilmDto> getAll() {
         log.info("Request to get all films");
 
         return service.getAll();
     }
 
     @GetMapping("/{id}")
-    public Film getFilm(@PathVariable Long id) {
+    public FilmDto getFilm(@PathVariable Long id) {
         log.info("Request to get film {}", id);
 
         return service.getById(id);
@@ -76,14 +89,14 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public Collection<Film> getPopularFilms(@RequestParam(defaultValue = "10") int count) {
+    public Collection<FilmDto> getPopularFilms(@RequestParam(defaultValue = "10") int count) {
         log.info("Request to get {} popular films", count);
 
         return service.getPopularFilms(count);
     }
 
-    private void doChecks(Film film) throws ValidationException {
-        for (IChecker<Film> checker : checks) {
+    private void doChecks(FilmDto film) throws ValidationException {
+        for (IChecker<FilmDto> checker : checks) {
             try {
                 checker.check(film);
             } catch (ValidationException exception) {

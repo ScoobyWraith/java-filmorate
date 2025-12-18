@@ -1,11 +1,11 @@
 package ru.yandex.practicum.filmorate.controller.checkers;
 
+import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
-import ru.yandex.practicum.filmorate.model.Film;
 
-public class FilmDescriptionChecker implements IChecker<Film> {
+public class FilmDescriptionChecker implements IChecker<FilmDto> {
     @Override
-    public void check(Film model) throws ValidationException {
+    public void check(FilmDto model) throws ValidationException {
         final String desc = model.getDescription();
 
         if (desc != null && desc.length() > 200) {
